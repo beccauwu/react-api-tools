@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+      "module": "Node16",
+      "lib": ["dom", "ESNext"],
+      "types": [],
+      "strict": true,
+      "noEmit": true,
+      "jsx": "react-jsx"
+    }
+  }
