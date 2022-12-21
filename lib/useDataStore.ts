@@ -5,11 +5,12 @@ import type {
   InitialStoreState,
   StoreState,
   StoreAction,
-  StoreCache,
+  CacheBase,
   BaseApiObject,
   ApiQuery,
   ApiError
 } from "react-api-tools"
+import { Cache } from "./Cache";
 /**
  * hook for storing data, loading, errors and crud functions
  *
@@ -96,13 +97,15 @@ import type {
  * };
  * ```
  */
-export default function useDataStore<T extends BaseApiObject>(q: ApiQuery<T>): StoreState<T> {
+export default function useDataStore<T extends BaseApiObject>(
+  q: ApiQuery<T>,
+  cache: Cache<T>
+): StoreState<T> {
   const initialState: InitialStoreState<T> = {
     data: undefined,
     loading: false,
     errors: undefined,
   };
-  const cache = useRef<StoreCache<T>>({});
   const cancelRequest = useRef<boolean>(false);
   const api = new ApiClient<T>(q);
   const dataReducer = (state: StoreState<T>, action: StoreAction<T>): StoreState<T> => {
@@ -165,7 +168,7 @@ export default function useDataStore<T extends BaseApiObject>(q: ApiQuery<T>): S
           },
         });
       }
-      cache.current[q.endpoint] = response.data;
+      cache.set(q.endpoint, response.data);
       if (!cancelRequest.current) {
         return dispatch({
           type: "data",
@@ -175,11 +178,12 @@ export default function useDataStore<T extends BaseApiObject>(q: ApiQuery<T>): S
         });
       }
     };
-    if (cache.current[q.endpoint]) {
+    const cachedData = cache.get(q.endpoint);
+    if (cachedData) {
       dispatch({
         type: "data",
         payload: {
-          data: cache.current[q.endpoint],
+          data: cachedData,
         },
       });
     } else {

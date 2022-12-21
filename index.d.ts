@@ -10,8 +10,26 @@ declare module 'react-api-tools' {
             get?: () => Promise<void>;
         };
     };
-
-    export type StoreCache<T> = { [key: string]: T[] };
+    export class CacheBase<T extends BaseApiObject> {
+        constructor(session?: SessionBase<T>)
+        get: (key: string) => T[] | undefined;
+        set: (key: string, data: T[]) => void;
+        clear: () => void;
+        clearKey: (key: string) => void;
+    }
+    export class SessionBase<T extends BaseApiObject> {
+        constructor(parseSaved: boolean, storageType: "session" | "local");
+        items: { [key: string]: T[] };
+        getItem(key: string): T[] | undefined;
+        setItem(key: string, data: T[]): void;
+        setItems(objs:{ [key: string]: T[] }, overrideExisting: boolean): void;
+    }
+    export class CacheContainerBase {
+        constructor(caches: { [key: string]: CacheBase<BaseApiObject> });
+        getCache<T extends BaseApiObject>(key: string): CacheBase<T>;
+        clearCache(key: string): void;
+        clearAll(): void;
+    }
 
     export type StoreState<T> = {
         loading: boolean;
@@ -31,9 +49,16 @@ declare module 'react-api-tools' {
         edit?: () => Promise<void>;
         get?: () => Promise<void>;
     };
-    export type BaseApiObject = {
+    export class BaseApiObject {
         id: string;
+    }
+    export type ApiObjectConfig<T extends BaseApiObject> = {
+        [key: string]: T;
     };
+    export function extendsBaseApiObject<T extends BaseApiObject>(obj: T): T;
+    export class BaseApiObjectArray<T extends BaseApiObject> extends Array<T> {
+        constructor(...items: T[]);
+    }
     export interface ApiQuery<T extends BaseApiObject> {
         endpoint: string;
         params?: string
@@ -80,5 +105,8 @@ declare module 'react-api-tools' {
     export interface DataProviderProps extends React.ReactPropTypes {
         children: React.ReactNode | React.ReactNode[];
         endpoint: string;
+    }
+    export class DataStore<T extends BaseApiObject> {
+        cacheContainer: CacheBase<T>;
     }
 }

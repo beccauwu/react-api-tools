@@ -3,7 +3,7 @@ import ApiClient from "../apiClient";
 import type {
     StoreState,
     StoreAction,
-    StoreCache,
+    CacheBase,
     BaseApiObject,
     ApiQuery,
 } from "react-api-tools"
@@ -12,7 +12,8 @@ export default function crudFucntions<T extends BaseApiObject, C extends ApiClie
     dispatch: React.Dispatch<StoreAction<T>>,
     api: C | ApiClient<T>,
     state: StoreState<T>,
-    cache: React.MutableRefObject<StoreCache<T>>, q: ApiQuery<T>
+    cache: CacheBase<T>,
+    q: ApiQuery<T>
 ): {
     deleteObject: () => Promise<void>;
     createObject: () => Promise<void>;
@@ -31,7 +32,7 @@ export default function crudFucntions<T extends BaseApiObject, C extends ApiClie
             });
         }
         let newState: T[] = (state.data || []).filter((d: T) => d.id !== response.data.id);
-        cache.current[q.endpoint] = newState;
+        cache.set(q.endpoint, newState);
         return dispatch({
             type: "data",
             payload: {
@@ -53,7 +54,7 @@ export default function crudFucntions<T extends BaseApiObject, C extends ApiClie
             });
         }
         const newState = [...(state.data || []), response.data as T];
-        cache.current[q.endpoint] = newState;
+        cache.set(q.endpoint, newState)
         return dispatch({
             type: "data",
             payload: {
@@ -79,7 +80,7 @@ export default function crudFucntions<T extends BaseApiObject, C extends ApiClie
             if (d.id === response.data.id)
                 return response.data; return d;
         });
-        cache.current[q.endpoint] = newState;
+        cache.set(q.endpoint, newState);
         return dispatch({
             type: "data",
             payload: {
@@ -104,7 +105,7 @@ export default function crudFucntions<T extends BaseApiObject, C extends ApiClie
             if (d.id === response.data.id)
                 return response.data; return d;
         });
-        cache.current[q.endpoint] = newState;
+        cache.set(q.endpoint, newState);
         return dispatch({
             type: "data",
             payload: {
